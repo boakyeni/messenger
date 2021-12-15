@@ -1,6 +1,6 @@
-# Getting Started with Create React App
+# About
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Realtime Chat application made using React and Google Firebase v9
 
 ## Available Scripts
 

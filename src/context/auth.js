@@ -1,6 +1,12 @@
 import {createContext, useEffect, useState} from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import {auth} from '../firebase';
+import Loading from '../components/Loading';
+
+/*
+This program handles state management.
+user can refresh page and still be logged in
+*/
 export const AuthContext = createContext();
 
 const AuthProvider = ({children}) => {
@@ -14,7 +20,7 @@ const AuthProvider = ({children}) => {
         })
     }, []);
     if(loading){
-        return "Loading";
+        return <Loading/>;
     }
     return <AuthContext.Provider value={{user}}>{children}</AuthContext.Provider>
 };

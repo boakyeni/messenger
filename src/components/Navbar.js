@@ -7,7 +7,10 @@ import {AuthContext} from '../context/auth';
 
 const Navbar = () => {
     const history = useHistory();
-    //checks is user is logged in
+    /*
+    The next line checks if user is logged in, 
+    returns null if not
+    */
     const {user} = useContext(AuthContext);
     const handleSignOut = async () => {
         await updateDoc(doc(db, 'users', auth.currentUser.uid), {isOnline: false});
