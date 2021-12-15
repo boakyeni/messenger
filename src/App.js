@@ -6,6 +6,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import AuthProvider from './context/auth';
+import Profile from './pages/Profile';
+
 function App() {
   return (
     <AuthProvider>
@@ -15,6 +17,7 @@ function App() {
       {/*This is how it done in v6
       <Route path='/' element={<Home/>}/>*/}
       <PrivateRoute exact path='/' component={Home}/>
+      <PrivateRoute exact path='/profile' component={Profile}/>
       <Route exact path='/register' component={Register}/>
       <Route exact path='/login' component={Login}/>
     </Switch>
