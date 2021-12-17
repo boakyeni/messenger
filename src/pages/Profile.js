@@ -1,14 +1,77 @@
-import React from 'react';
+import React, {useState, useEffect, useReducer} from 'react';
 import Camera from '../components/svg/Camera';
-
+import {storage,  db, auth} from '../firebase';
+import { ref, getDownloadURL, uploadBytes, deleteObject} from 'firebase/storage';
+import {getDoc, doc, updateDoc} from 'firebase/firestore'
+import {useHistory} from 'react-router-dom';
 
 const Profile = () => {
-    return (
+    const [img, setImg] = useState('');
+    const [user, setUser] = useState();
+    const history = useHistory('');
+
+    useEffect(() => {
+        getDoc(doc(db, "users", auth.currentUser.uid)).then((docSnap) => {
+            if(docSnap.exists) {
+                setUser(docSnap.data());
+            }
+        });
+
+        if(img){
+            const uploadImg = async () => {
+                //`...` is template literal
+                    const imgRef = ref(storage, `avatar/${new Date().getTime()} - ${img.name}`);
+                    try{
+                        //check for existing image
+                        if(user.avatarPath){
+                            await deleteObject(ref(storage, user.avatarPath));
+                        }
+                        /*
+                        upload image first is the ref, second is the image
+                        */
+                        const snap = await uploadBytes(imgRef, img);
+                        const url = await getDownloadURL(ref(storage, snap.ref.fullPath));
+    
+                        await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                            avatar: url,
+                            //needed for deletion
+                            avatarPath: snap.ref.fullPath
+                        });
+                        //reseting state
+                        setImg('');
+                    } catch (err){
+                        console.log(err.message);
+                    }
+                    
+            };
+            uploadImg();
+        }
+        
+
+    }, [img]); // Passing img as dependency
+    const deleteImage = async () => {
+        try {
+            const confirm = window.confirm('Delete avatar?');
+            if(confirm){
+                await deleteObject(ref(storage, user.avatarPath));
+                //update user info in firebase when profile pic is deleted
+                await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                    avatar: '',
+                    avatarPath: ''
+                });
+                history.replace('/')
+            }
+        
+        } catch (err) {
+            console.log(err.message);
+        }
+    };
+    return user ? (
     <section>
         <div className="profile_container">
             <div className="img_container">
                 
-            <img src="person.svg" alt="profile pic"/>
+            <img src={user.avatar || "person.svg"} alt="profile pic"/>
             <div className="overlay">
                 <div>
                     <label htmlFor="photo">
@@ -19,19 +82,20 @@ const Profile = () => {
                     accept="image/*"
                     style={{ display: "none" }}
                     id="photo"
+                    onChange={(e) => setImg(e.target.files[0])}
                     />
                 </div>
             </div>
             </div>
             <div className="text_container">
-                <h3>User Name</h3>
-                <p>User email</p>
+                <h3>{user.name}</h3>
+                <p>{user.email}</p>
                 <hr/>
-                <small>Joined on: ...</small>
+                <small>Joined on: {user.createdAt.toDate().toDateString()}</small>
             </div>
         </div>
     </section>
-    );
+    ) : null;
 };
 
 export default Profile;
